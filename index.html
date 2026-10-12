@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>타자연습</title>
+<style>
+:root{--bg:#fff;--fg:#1c1c1e;--mute:#a1a1aa;--line:#e8e8ea;--card:#f6f6f7;--acc:#3b82f6;--bad:rgba(239,68,68,.28);--fs:22px;
+padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+[data-theme=dark]{--bg:#121214;--fg:#ececef;--mute:#5f5f68;--line:#26262a;--card:#1b1b1f;--bad:rgba(239,68,68,.42)}
+[data-theme=sepia]{--bg:#f4ecd8;--fg:#433422;--mute:#b3a58a;--line:#e3d6b8;--card:#ede2c8}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 -apple-system,Pretendard,"Noto Sans KR",system-ui,sans-serif;transition:background .15s,color .15s;-webkit-tap-highlight-color:transparent}
+main{max-width:720px;margin:0 auto;padding:28px 20px 56px}
+header{display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:600;letter-spacing:-.01em}
+button{font:inherit;color:inherit;cursor:pointer}
+.ic{border:0;background:none;font-size:20px;color:var(--mute);padding:6px;transition:color .12s}.ic:hover{color:var(--fg)}
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.seg{display:inline-flex;flex-wrap:wrap;gap:2px;background:var(--card);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;color:var(--mute);padding:6px 12px;border-radius:8px;font-size:14px;transition:all .12s}
+.seg button.on{background:var(--bg);color:var(--fg);box-shadow:0 0 0 1px var(--line)}
+.seg button i{display:block;width:16px;height:16px;border-radius:50%;margin:3px 2px}
+.stats{display:flex;gap:22px;flex-wrap:wrap;font-size:13px;color:var(--mute);margin:40px 0 18px}
+.stats b{color:var(--fg);font-weight:600;font-variant-numeric:tabular-nums}
+#text{position:relative;font-size:var(--fs);line-height:1.9;font-weight:500;color:var(--mute);word-break:keep-all;overflow-wrap:anywhere;white-space:pre-wrap;max-height:calc(var(--fs)*1.9*5 + 16px);overflow:hidden;padding:8px 0;cursor:text;user-select:none;-webkit-user-select:none}
+#text .ok{color:var(--fg)}
+#text .bad{background:var(--bad);color:var(--fg);border-radius:3px}
+#caret{position:absolute;left:0;top:0;width:2px;border-radius:1px;background:var(--acc);pointer-events:none;will-change:transform;transition:transform .1s ease-out;animation:bl 1s steps(2,start) infinite}
+#caret.mv{animation:none}
+#text .comp{color:var(--acc)}
+#text span{transition:color .12s,background-color .12s}
+@keyframes bl{50%{opacity:0}}
+.hint{font-size:12px;color:var(--mute);margin:20px 0 0}
+.card{margin-top:56px;padding-top:24px;border-top:1px solid var(--line)}
+.card h3,#res h3{font-size:13px;font-weight:600;color:var(--mute);margin:0 0 12px}
+.row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mute);margin-top:12px}
+.row b{color:var(--fg)}
+.mute{color:var(--mute);font-size:13px}
+.link{border:0;background:none;color:var(--mute);font-size:13px;text-decoration:underline;padding:0}
+.big{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:28px 0 36px}
+.big b{display:block;font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}
+.big span{font-size:12px;color:var(--mute)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips span{background:var(--card);border-radius:8px;padding:6px 12px;font-size:18px}
+.chips small{font-size:12px;color:var(--mute);margin-left:4px}
+.btns{display:flex;gap:10px;margin-top:36px}
+.btns button{flex:1;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);transition:opacity .12s}
+.btns .pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.btns button:active{opacity:.7}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .15s}
+.ov.open{opacity:1;pointer-events:auto}
+.sheet{width:100%;max-width:720px;max-height:85vh;overflow:auto;background:var(--bg);border-radius:18px 18px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));transform:translateY(12px);transition:transform .15s}
+.open .sheet{transform:none}
+.sheet h2{font-size:16px;margin:0 0 4px}
+.set{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+#ta{position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;border:0;padding:0;font-size:16px;resize:none;pointer-events:none}
+@media(max-width:480px){.big{grid-template-columns:repeat(2,1fr)}.set{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+<main>
+  <header><span class="logo" data-i="logo"></span><button class="ic" id="gear" aria-label="settings">⚙</button></header>
+  <div class="bar"><div class="seg" data-k="mode"></div><div class="seg" data-k="lang"></div></div>
+  <section id="play">
+    <div class="stats"><span><span data-i="s_cpm"></span> <b id="cpm">0</b></span><span><span data-i="s_wpm"></span> <b id="wpm">0</b></span><span><span data-i="s_acc"></span> <b id="acc">100</b>%</span><span><span data-i="s_tm"></span> <b id="tm">0.0</b><span data-i="sec"></span></span></div>
+    <div id="text"></div>
+    <p class="hint" data-i="hint"></p>
+  </section>
+  <section id="res" hidden></section>
+  <section class="card">
+    <h3 data-i="rec"></h3>
+    <div id="graph"></div>
+    <div class="row"><span><span data-i="best"></span> <b id="best">0</b> · <span data-i="recent"></span> <b id="cnt">0</b><span data-i="cnt"></span></span><button class="link" id="clr" data-i="clear"></button></div>
+  </section>
+</main>
+
+<div class="ov" id="ov"><div class="sheet">
+  <h2 data-i="set"></h2>
+  <div class="set"><span data-i="st_theme"></span><div class="seg" data-k="theme"></div></div>
+  <div class="set"><span data-i="st_acc"></span><div class="seg" data-k="acc"></div></div>
+  <div class="set"><span data-i="st_size"></span><div class="seg" data-k="size"></div></div>
+  <div class="set"><span data-i="st_ui"></span><div class="seg" data-k="ui"></div></div>
+  <div class="set"><span data-i="st_snd"></span><div class="seg" data-k="snd"></div></div>
+  <div class="set"><span data-i="st_block"></span><div class="seg" data-k="block"></div></div>
+</div></div>
+
+<textarea id="ta" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="입력"></textarea>
+
+<script>
+// ===== 데이터 =====
+const KO=["가는 말이 고우면 오는 말이 곱다.","낮말은 새가 듣고 밤말은 쥐가 듣는다.","티끌 모아 태산이다.","백지장도 맞들면 낫다.","소 잃고 외양간 고친다.","천 리 길도 한 걸음부터 시작된다.","세 살 버릇 여든까지 간다.","호랑이도 제 말 하면 온다.","아는 길도 물어 가라.","열 번 찍어 안 넘어가는 나무 없다.","원숭이도 나무에서 떨어질 때가 있다.","시작이 반이다.","오늘 할 일을 내일로 미루지 마라.","실패는 성공의 어머니이다.","꿈을 향해 한 걸음씩 나아가면 반드시 닿는다.","지금 이 순간이 당신 인생에서 가장 젊은 날이다.","행복은 멀리 있지 않고 일상 속에 숨어 있다.","배움에는 끝이 없고 시작하기에 늦은 때도 없다.","오늘은 날씨가 좋아서 산책을 다녀왔어요.","점심으로 따뜻한 국밥을 먹었더니 몸이 풀렸다.","주말에는 친구들과 영화를 보기로 했어요.","아침마다 커피 한 잔으로 하루를 시작합니다.","창밖으로 비가 내리는 소리가 참 듣기 좋다.","퇴근길에 서점에 들러 새 책을 한 권 샀다.","내일 아침 아홉 시까지 회의실로 오세요.","맛있는 음식을 먹으면 기분이 절로 좋아진다.","가을 하늘은 높고 바람은 시원하게 불어온다.","작은 습관이 모여 큰 변화를 만들어 낸다.","고생 끝에 낙이 온다고 하니 조금만 더 힘내자.","느리더라도 멈추지 않는다면 언젠가 도착한다.","말 한마디로 천 냥 빚을 갚는다.","우물 안 개구리는 넓은 바다를 알지 못한다."];
+const EN=["The quick brown fox jumps over the lazy dog.","A journey of a thousand miles begins with a single step.","Practice makes perfect.","Actions speak louder than words.","The early bird catches the worm.","Better late than never.","Where there is a will, there is a way.","Knowledge is power.","Time flies when you are having fun.","Do not count your chickens before they hatch.","Every cloud has a silver lining.","Fortune favors the bold.","Honesty is the best policy.","Rome was not built in a day.","All that glitters is not gold.","A picture is worth a thousand words.","The best way to predict the future is to create it.","Success is not final, failure is not fatal.","Simplicity is the ultimate sophistication.","Stay hungry, stay foolish.","I think, therefore I am.","Life is what happens while you are busy making other plans.","The only thing we have to fear is fear itself.","It was a bright cold day in April, and the clocks were striking thirteen.","Could you please send me the report by tomorrow morning?","I usually go for a walk after dinner to clear my head.","Let's grab a cup of coffee and catch up this weekend.","The train to the city leaves every fifteen minutes.","She opened the window and let the fresh morning air in.","Small steps every day lead to big results over time.","Learning a new skill takes patience and consistent effort.","Please remember to turn off the lights before you leave."];
+const WK="사과 바다 하늘 구름 학교 친구 가족 나무 여름 겨울 도시 음악 영화 커피 책상 바람 노래 행복 시간 여행 사랑 마음 기억 거울 창문 노트 연필 고양이 강아지 우산 자전거 버스 지하철 공원 산책 요리 미소 약속 아침 저녁 봄날 가을 노을 햇살 소나기 무지개 별빛 달빛 호수 시냇물 언덕 오솔길 숲속 꽃잎 잎새 씨앗 열매 바구니 도시락 간식 과일 포도 수박 딸기 복숭아 감자 고구마 김치 된장 라면 우유 빵집 시장 골목 마을 아파트 지붕 계단 현관 부엌 식탁 의자 침대 베개 이불 시계 달력 편지 엽서 사진 그림 붓글씨 피아노 기타 노랫말 운동장 도서관 박물관 기차역 공항 항구 등대 섬마을 모래 파도 조개 물고기 거북이 토끼 다람쥐 참새 나비 잠자리".split(" ");
+const WE="time year people way day man thing woman life child world school state family student group country problem hand part place case week company system program question work number night point home water room mother area money story fact month book eye job word business issue side kind head house apple river mountain forest ocean window garden bridge candle pencil paper music movie coffee morning evening summer winter spring autumn flower cloud rain wind storm sunset moon star planet rocket engine bicycle train station airport market street corner yellow orange purple silver golden gentle quiet bright simple honest curious patient happy strong smooth clever basket pocket ticket letter picture camera guitar piano theater library museum island desert valley harbor lantern pillow blanket kitchen".split(" ");
+const MODES=[["sentence","m_sentence"],["paragraph","m_paragraph"],["word","m_word"],["t30","m_t30"],["t60","m_t60"]];
+const ACCS=["#3b82f6","#10b981","#f59e0b","#ec4899","#8b5cf6"];
+// 모드/타자 언어는 메인 화면에서만, 설정의 "언어"(ui)는 인터페이스 언어
+const CTL={theme:[["light","light"],["dark","dark"],["sepia","sepia"]],acc:ACCS.map((c,i)=>[i,""]),size:[[0,"sm"],[1,"md"],[2,"lg"]],mode:MODES,lang:[["ko","한글"],["en","English"]],ui:[["ko","한국어"],["en","English"]],snd:[["tick","sn_tick"],["soft","sn_soft"],["key","sn_key"],["bubble","sn_bubble"],["off","off"]],block:[[false,"off"],[true,"on"]]};
+const I18N={ko:{logo:"타자연습",hint:"아무 키나 눌러 시작 · Tab 다시하기 · Enter 다음 문장 · Esc 설정",s_cpm:"타수",s_wpm:"WPM",s_acc:"정확도",s_tm:"시간",sec:"초",rec:"기록",best:"최고 타수",recent:"최근",cnt:"회",clear:"기록 초기화",confirm:"기록을 모두 지울까요?",nograph:"기록이 2개 이상 쌓이면 추이 그래프가 표시돼요.",set:"설정",st_theme:"테마",st_acc:"강조색",st_size:"글자 크기",st_ui:"언어",st_snd:"효과음",st_block:"오타 시 진행 막기",light:"라이트",dark:"다크",sepia:"세피아",sm:"작게",md:"보통",lg:"크게",on:"켜기",off:"끄기",m_sentence:"짧은 글",m_paragraph:"긴 글",m_word:"단어",m_t30:"30초",m_t60:"60초",sn_tick:"틱",sn_soft:"부드럽게",sn_key:"키보드",sn_bubble:"버블",res:"결과",nb:"최고 기록 갱신",top:"가장 많이 틀린 글자 TOP 5",none:"오타 없음",again:"다시하기",next:"다음 문장"},
+en:{logo:"Typing Practice",hint:"Press any key to start · Tab retry · Enter next · Esc settings",s_cpm:"CPM",s_wpm:"WPM",s_acc:"Accuracy",s_tm:"Time",sec:"s",rec:"History",best:"Best CPM",recent:"Last",cnt:" runs",clear:"Clear history",confirm:"Clear all records?",nograph:"A trend graph appears after 2 runs.",set:"Settings",st_theme:"Theme",st_acc:"Accent",st_size:"Text size",st_ui:"Language",st_snd:"Sound",st_block:"Block on typo",light:"Light",dark:"Dark",sepia:"Sepia",sm:"Small",md:"Medium",lg:"Large",on:"On",off:"Off",m_sentence:"Sentence",m_paragraph:"Paragraph",m_word:"Words",m_t30:"30 sec",m_t60:"60 sec",sn_tick:"Tick",sn_soft:"Soft",sn_key:"Keyboard",sn_bubble:"Bubble",res:"Result",nb:"New best",top:"Most missed characters (Top 5)",none:"No mistakes",again:"Retry",next:"Next"}};
+const t=k=>(I18N[S.cfg.ui]&&I18N[S.cfg.ui][k])||k;
+
+// ===== 저장 =====
+const KEY="typing.cfg.v1",HKEY="typing.hist.v1",BKEY="typing.best.v1";
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},
+  del(k){try{localStorage.removeItem(k)}catch(e){}}};
+
+// ===== 상태 (단일 객체) =====
+const dark=matchMedia("(prefers-color-scheme: dark)");
+const S={cfg:Object.assign({theme:dark.matches?"dark":"light",acc:0,size:1,mode:"sentence",lang:"ko",snd:"soft",ui:/^ko/.test(navigator.language)?"ko":"en",block:false},store.get(KEY,{})),
+  T:"",val:"",cp:0,hits:0,miss:0,missMap:{},started:false,done:false,comp:false,t0:0,end:0,timer:0,last:"",bag:[],lastW:""};
+const $=s=>document.querySelector(s),ta=$("#ta"),txt=$("#text"),res=$("#res"),ov=$("#ov");
+
+// ===== 문장 생성 =====
+const rnd=a=>a[Math.random()*a.length|0];
+const pool=()=>S.cfg.lang==="ko"?KO:EN,wpool=()=>S.cfg.lang==="ko"?WK:WE;
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+function draw(a,n){const o=[];
+  while(o.length<n){
+    if(!S.bag.length){S.bag=shuffle(a);if(S.bag.length>1&&S.bag[S.bag.length-1]===S.lastW)S.bag.unshift(S.bag.pop())}
+    S.lastW=S.bag.pop();o.push(S.lastW)}
+  return o.join(" ")}
+const lim=()=>({t30:30,t60:60})[S.cfg.mode]||0;
+function gen(){const m=S.cfg.mode;
+  if(m==="sentence"){let s;do s=rnd(pool());while(s===S.last);return S.last=s}
+  if(m==="paragraph")return draw(pool(),4);
+  return draw(wpool(),m==="word"?12:40)}
+
+// ===== 통계 계산 =====
+// 한글은 자모 분해 기준 타수(복합 모음/받침은 2타)
+const keys=ch=>{const c=ch.charCodeAt(0)-44032;if(c<0||c>11171)return 1;
+  const j=c%28,v=((c/28)|0)%21;
+  return 1+([9,10,11,14,15,16,19].includes(v)?2:1)+(j?([3,5,6,9,10,11,12,13,14,15,18].includes(j)?2:1):0)-1+0};
+function elapsed(){if(!S.started)return 0;const e=((S.done?S.end:performance.now())-S.t0)/1000;return lim()?Math.min(e,lim()):e}
+function calc(){const el=elapsed();let k=0,ok=0;
+  for(let i=0;i<S.cp;i++)if(S.val[i]===S.T[i]){k+=keys(S.T[i]);ok++}
+  const m=Math.max(el,1)/60,t=S.hits+S.miss;
+  return{el,cpm:Math.round(k/m),wpm:Math.round(ok/5/m),acc:t?Math.round(S.hits/t*100):100}}
+
+// ===== 효과음 =====
+// 프리셋: [파형, 주파수, 길이(초), 볼륨, 피치 변화 배율]
+const SND={tick:{ok:["sine",900,.05,.05],bad:["triangle",160,.1,.06]},
+  soft:{ok:["sine",440,.09,.035,1.1],bad:["sine",170,.14,.045]},
+  key:{ok:["triangle",1200,.025,.03,.6],bad:["square",260,.08,.02]},
+  bubble:{ok:["sine",600,.1,.04,1.8],bad:["sine",260,.14,.045,.6]}};
+let ac,lastB=0;
+function audio(){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume()}catch(e){}return ac}
+function beep(ok,force){const p=SND[S.cfg.snd];if(!p||!audio())return;
+  const now=performance.now();if(!force&&now-lastB<30)return;lastB=now;
+  try{const[ty,f,d,vol,sw]=p[ok?"ok":"bad"],tt=ac.currentTime,o=ac.createOscillator(),g=ac.createGain(),fr=f*(1+(Math.random()-.5)*.06);
+    o.type=ty;o.frequency.setValueAtTime(fr,tt);if(sw)o.frequency.exponentialRampToValueAtTime(fr*sw,tt+d);
+    g.gain.setValueAtTime(.0001,tt);g.gain.linearRampToValueAtTime(vol,tt+.005);g.gain.exponentialRampToValueAtTime(.0001,tt+d);
+    o.connect(g);g.connect(ac.destination);o.start(tt);o.stop(tt+d+.02)}catch(e){}}
+
+// ===== 렌더 =====
+let sp=[],caretY=-1,mvT=0;const caret=document.createElement("div");caret.id="caret";
+function render(){
+  if(sp.length!==S.T.length){let h="";for(let i=0;i<S.T.length;i++)h+=`<span>${S.T[i]}</span>`;txt.innerHTML=h;sp=[...txt.children];txt.appendChild(caret);caretY=-1}
+  const v=S.val,n=v.length,cl=Math.max(0,S.comp?n-1:n);
+  for(let i=0;i<sp.length;i++){let k="";
+    if(i<cl&&i<n)k=v[i]===S.T[i]?"ok":"bad";
+    else if(i===cl)k=S.comp?"cur comp":"cur";
+    if(sp[i].className!==k)sp[i].className=k}
+  if(!sp.length)return;
+  const k=Math.min(cl,sp.length-1),e=sp[k],x=e.offsetLeft+(cl>k?e.offsetWidth:0),y=e.offsetTop,jump=y!==caretY;
+  if(jump)caret.style.transition="none"; // 줄이 바뀔 때는 대각선 이동 없이 바로 이동
+  caret.style.height=e.offsetHeight+"px";caret.style.transform=`translate(${x-1}px,${y}px)`;
+  if(jump){void caret.offsetWidth;caret.style.transition="";caretY=y}
+  caret.classList.add("mv");clearTimeout(mvT);mvT=setTimeout(()=>caret.classList.remove("mv"),600); // 입력 중에는 깜빡임 멈춤
+  const sy=Math.max(0,y-txt.clientHeight/2.5);if(Math.abs(sy-txt.scrollTop)>4)txt.scrollTo({top:sy,behavior:"smooth"})}
+function updateStats(){const s=calc();
+  $("#cpm").textContent=s.cpm;$("#wpm").textContent=s.wpm;$("#acc").textContent=s.acc;
+  $("#tm").textContent=(lim()?Math.max(0,lim()-s.el):s.el).toFixed(1)}
+function graph(){const h=store.get(HKEY,[]),g=$("#graph");
+  if(h.length<2)g.innerHTML=`<div class="mute">${t("nograph")}</div>`;
+  else{const W=300,H=80,p=8,vs=h.map(x=>x.cpm),mx=Math.max(...vs),mn=Math.min(...vs);
+    const sx=i=>p+i*(W-2*p)/(h.length-1),sy=v=>H-p-(mx===mn?.5:(v-mn)/(mx-mn))*(H-2*p);
+    g.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%"><polyline points="${h.map((x,i)=>sx(i)+","+sy(x.cpm)).join(" ")}" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linejoin="round"/>`+
+      h.map((x,i)=>`<circle cx="${sx(i)}" cy="${sy(x.cpm)}" r="2.5" fill="var(--acc)"/>`).join("")+"</svg>"}
+  $("#best").textContent=store.get(BKEY,0);$("#cnt").textContent=h.length}
+function showResult(r,nb){
+  const top=Object.entries(S.missMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  res.innerHTML=`<div class="stats"><span>${t(nb?"nb":"res")}</span></div>
+  <div class="big"><div><b>${r.cpm}</b><span>${t("s_cpm")}</span></div><div><b>${r.wpm}</b><span>WPM</span></div><div><b>${r.acc}%</b><span>${t("s_acc")}</span></div><div><b>${r.el.toFixed(1)}s</b><span>${t("s_tm")}</span></div></div>
+  <h3>${t("top")}</h3>
+  <div class="chips">${top.length?top.map(([c,n])=>`<span>${c===" "?"␣":c}<small>×${n}</small></span>`).join(""):`<span class="mute">${t("none")}</span>`}</div>
+  <div class="btns"><button data-a="again">${t("again")}</button><button class="pri" data-a="next">${t("next")}</button></div>`;
+  $("#play").hidden=true;res.hidden=false}
+
+// ===== 진행 제어 =====
+function reset(next){clearInterval(S.timer);
+  if(next||!S.T){S.bag=[];S.lastW="";S.T=gen()}
+  Object.assign(S,{val:"",cp:0,hits:0,miss:0,missMap:{},started:false,done:false,comp:false});
+  ta.value="";res.hidden=true;$("#play").hidden=false;
+  sp=[];txt.scrollTop=0;render();updateStats();ta.focus()}
+function start(){S.started=true;S.t0=performance.now();S.timer=setInterval(tick,100)}
+function tick(){updateStats();if(lim()&&elapsed()>=lim())finish(false)}
+function finish(full){if(S.done)return;
+  if(full)S.val=commit(ta.value,ta.value.length,false);
+  S.done=true;S.end=performance.now();clearInterval(S.timer);
+  const r=calc(),best=store.get(BKEY,0),nb=r.cpm>best&&S.hits+S.miss>0;
+  if(S.hits+S.miss>0){
+    const h=store.get(HKEY,[]);h.push({cpm:r.cpm,acc:r.acc,sec:+r.el.toFixed(1),lang:S.cfg.lang,mode:S.cfg.mode,d:Date.now()});
+    store.set(HKEY,h.slice(-20));if(nb)store.set(BKEY,r.cpm)}
+  S.r=r;S.nb=nb;updateStats();graph();showResult(r,nb);ta.blur()}
+
+// ===== 입력 처리 =====
+// 확정된 글자(cl 미만)만 판정, 조합 중인 마지막 글자는 판정 보류
+function commit(val,cl,trim){let any=false,bad=false;
+  for(let i=S.cp;i<cl;i++){const ok=val[i]===S.T[i];any=true;if(!ok)bad=true;
+    if(ok)S.hits++;else{S.miss++;const c=S.T[i]||"";S.missMap[c]=(S.missMap[c]||0)+1}
+    if(!ok&&S.cfg.block&&trim){val=val.slice(0,i);cl=i;ta.value=val;break}}
+  if(any)beep(!bad);S.cp=cl;return val}
+function onInput(){if(S.done)return;if(!S.started)start();
+  if(lim()&&ta.value.length>S.T.length-60)S.T+=" "+draw(wpool(),20);
+  const comp=S.comp;let v=ta.value;
+  v=commit(v,Math.max(0,comp?v.length-1:v.length),!comp);S.val=v;
+  const n=v.length;
+  if(!lim()&&n>=S.T.length&&(!comp||v[n-1]===S.T[n-1])){S.val=v;return finish(comp)}
+  render()}
+ta.addEventListener("input",onInput);
+ta.addEventListener("compositionstart",()=>{S.comp=true;if(!S.started&&!S.done)start()});
+ta.addEventListener("compositionend",()=>{S.comp=false;onInput()});
+["paste","drop"].forEach(t=>ta.addEventListener(t,e=>e.preventDefault()));
+ta.addEventListener("beforeinput",e=>{if(/Paste|Drop/.test(e.inputType))e.preventDefault()});
+
+// ===== 설정 =====
+function seg(el){const k=el.dataset.k;
+  el.innerHTML=CTL[k].map(([v,l])=>`<button data-v="${v}" class="${String(S.cfg[k])===String(v)?"on":""}">${k==="acc"?`<i style="background:${ACCS[v]}"></i>`:t(l)}</button>`).join("");
+  el.onclick=e=>{const b=e.target.closest("button");if(!b)return;let v=b.dataset.v;
+    if(v==="true"||v==="false")v=v==="true";else if(k==="size"||k==="acc")v=+v;
+    setCfg(k,v)}}
+function applyCfg(){const c=S.cfg,r=document.documentElement;
+  r.dataset.theme=c.theme;r.style.setProperty("--acc",ACCS[c.acc]);r.style.setProperty("--fs",[20,22,24][c.size]+"px");
+  r.lang=c.ui;document.querySelectorAll("[data-i]").forEach(e=>e.textContent=t(e.dataset.i));$("#gear").setAttribute("aria-label",t("set"));document.title=t("logo");document.querySelectorAll("[data-k]").forEach(seg)}
+function setCfg(k,v){S.cfg[k]=v;store.set(KEY,S.cfg);applyCfg();
+  if(k==="mode"||k==="lang"){S.last="";reset(true)}
+  else if(k==="ui"){graph();updateStats();if(!res.hidden&&S.r)showResult(S.r,S.nb)}
+  else if(k==="snd")beep(true,true);
+  else render()}
+function toggleSheet(f){const o=f===undefined?!ov.classList.contains("open"):f;
+  ov.classList.toggle("open",o);if(!o)ta.focus()}
+dark.addEventListener("change",e=>{if(!store.get(KEY,{}).theme){S.cfg.theme=e.matches?"dark":"light";applyCfg()}});
+
+// ===== 이벤트 =====
+$("#gear").onclick=()=>toggleSheet();
+ov.addEventListener("click",e=>{if(e.target===ov)toggleSheet(false)});
+res.addEventListener("click",e=>{const a=e.target.dataset.a;if(a)reset(a==="next")});
+$("#clr").onclick=()=>{if(confirm(t("confirm"))){store.del(HKEY);store.del(BKEY);graph();ta.focus()}};
+document.addEventListener("keydown",e=>{
+  if(S.cfg.snd!=="off")audio();
+  if(e.key==="Escape"){toggleSheet();return}
+  if(ov.classList.contains("open"))return;
+  if(e.isComposing||e.keyCode===229)return;
+  if(e.key==="Tab"){e.preventDefault();reset(false);return}
+  if(e.key==="Enter"){e.preventDefault();reset(true);return}
+  if(document.activeElement!==ta&&!S.done)ta.focus()});
+// 화면 아무 곳이나 누르면 입력창에 포커스 복귀
+document.addEventListener("pointerdown",e=>{if(!e.target.closest("button,.sheet"))setTimeout(()=>{if(!ov.classList.contains("open")&&!S.done)ta.focus()},0)});
+
+// ===== 시작 =====
+addEventListener("resize",()=>{caretY=-1;render()});
+applyCfg();reset(true);graph();
+</script>
+</body>
+</html>
